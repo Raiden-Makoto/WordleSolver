@@ -184,21 +184,139 @@ def playWordle(allWords: set[str], maxGuesses: int = 6):
     
     print("Reached maximum guesses. Better luck next time!")
 
+def testSolverOnHistoricalWordles(allWords: set[str], testWords: list[str], maxGuesses: int = 6):
+    """
+    Test the solver against a list of historical Wordle answers to measure success rate.
+    """
+    results = []
+    total_guesses = 0
+    successes = 0
+    
+    print(f"Testing solver on {len(testWords)} historical Wordle answers...")
+    print("=" * 60)
+    
+    for i, word in enumerate(testWords, 1):
+        print(f"Test {i}/{len(testWords)}: {word.upper()}")
+        
+        # Use the existing solveWordle function but capture results
+        candidates = allWords.copy()
+        guesses = []
+        solved = False
+        
+        # First guess: always "arise"
+        firstGuess = "arise"
+        guesses.append(firstGuess)
+        feedback = getFeedback(firstGuess, word)
+        
+        if feedback == 242:  # All green
+            solved = True
+            num_guesses = 1
+        else:
+            candidates = filterCandidates(candidates, firstGuess, feedback)
+            
+            # Remaining guesses
+            for round_num in range(2, maxGuesses + 1):
+                if len(candidates) == 0:
+                    break
+                
+                if len(candidates) == 1:
+                    nextGuess = list(candidates)[0]
+                else:
+                    nextGuess = bestGuessVectorized(candidates, allWords)
+                
+                guesses.append(nextGuess)
+                feedback = getFeedback(nextGuess, word)
+                
+                if feedback == 242:  # All green
+                    solved = True
+                    num_guesses = round_num
+                    break
+                
+                candidates = filterCandidates(candidates, nextGuess, feedback)
+            else:
+                num_guesses = maxGuesses
+        
+        # Record results
+        result = {
+            'word': word,
+            'solved': solved,
+            'guesses': num_guesses,
+            'guess_sequence': guesses[:num_guesses] if solved else guesses
+        }
+        results.append(result)
+        
+        if solved:
+            successes += 1
+            total_guesses += num_guesses
+            print(f"  ✓ Solved in {num_guesses} guesses: {' → '.join(g.upper() for g in result['guess_sequence'])}")
+        else:
+            print(f"  ✗ Failed to solve: {' → '.join(g.upper() for g in result['guess_sequence'])}")
+    
+    # Calculate and display statistics
+    success_rate = (successes / len(testWords)) * 100
+    avg_guesses = total_guesses / successes if successes > 0 else 0
+    
+    print("\n" + "=" * 60)
+    print("RESULTS SUMMARY")
+    print("=" * 60)
+    print(f"Total tests: {len(testWords)}")
+    print(f"Successes: {successes}")
+    print(f"Failures: {len(testWords) - successes}")
+    print(f"Success rate: {success_rate:.1f}%")
+    print(f"Average guesses (for successful solves): {avg_guesses:.2f}")
+    
+    # Guess distribution
+    guess_distribution = {i: 0 for i in range(1, maxGuesses + 1)}
+    for result in results:
+        if result['solved']:
+            guess_distribution[result['guesses']] += 1
+    
+    print(f"\nGuess distribution:")
+    for guesses in range(1, maxGuesses + 1):
+        count = guess_distribution[guesses]
+        percentage = (count / successes) * 100 if successes > 0 else 0
+        print(f"  {guesses} guesses: {count:3d} ({percentage:4.1f}%)")
+    
+    return results
+
+def loadHistoricalWordles(filename: str = "historical_wordles.txt"):
+    """
+    Load historical Wordle answers from a file.
+    """
+    try:
+        with open(filename, 'r') as f:
+            words = [line.strip().lower() for line in f if line.strip()]
+        print(f"Loaded {len(words)} historical Wordle answers from {filename}")
+        return words
+    except FileNotFoundError:
+        print(f"File {filename} not found. You can create it with historical Wordle answers.")
+        return []
+
 if __name__ == "__main__":
     print("Choose mode:")
     print("1. Interactive Wordle solver (for real gameplay)")
     print("2. Test solver with known word")
+    print("3. Test solver success rate on historical Wordles")
     
     while True:
-        choice = input("Enter choice (1 or 2): ").strip()
-        if choice in ['1', '2']:
+        choice = input("Enter choice (1, 2, or 3): ").strip()
+        if choice in ['1', '2', '3']:
             break
-        print("Please enter 1 or 2")
+        print("Please enter 1, 2, or 3")
     
     if choice == '1':
         playWordle(POSSIBLE_WORDS)
-    else:
+    elif choice == '2':
         starttime = time.time()
         word = input("What word will be the mystery word? ").strip()
         solveWordle(POSSIBLE_WORDS, word, allWords=POSSIBLE_WORDS)
         print(f"Time taken: {time.time() - starttime} seconds.")
+    else:
+        # Test on historical Wordles
+        historical_words = loadHistoricalWordles()
+        if historical_words:
+            starttime = time.time()
+            results = testSolverOnHistoricalWordles(POSSIBLE_WORDS, historical_words)
+            print(f"\nTotal testing time: {time.time() - starttime:.2f} seconds.")
+        else:
+            print("No historical Wordle data found. Create a 'historical_wordles.txt' file with one word per line.")
