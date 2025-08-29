@@ -1,3 +1,5 @@
+from math import log2
+
 POSSIBLE_WORDS = set()
 
 with open("wordle_words.txt", "r") as f:
@@ -26,3 +28,20 @@ def filterCandidates(candidates: set, guess: str, feedback: list[int]) -> set:
     filtered = set(word for word in candidates if getFeedback(word, guess) == feedback)
     return filtered
 
+def entropyFunction(candidates: set, guess: str) -> float:
+    """
+    Compute expected information gain (entropy) if we guess `guess`
+    against the current set of possible answers `candidates`.
+    """
+    feedbackCounts = {}
+    for candidate in candidates:
+        feedback = getFeedback(guess, candidate)
+        key = str(feedback) # List is not hashable so convert to string
+        feedbackCounts[key] = feedbackCounts.get(key, 0) + 1
+
+    entropy = 0.0
+    N = len(candidates)
+    for count in feedbackCounts.values():
+        probability = count / N
+        entropy -= probability * log2(probability)
+    return entropy
