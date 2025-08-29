@@ -279,7 +279,7 @@ def testSolverOnHistoricalWordles(allWords: set[str], testWords: list[str], maxG
     
     return results
 
-def loadHistoricalWordles(filename: str = "historical_wordles.txt"):
+def loadHistoricalWordles(filename: str = "all_historical_wordles.txt"):
     """
     Load historical Wordle answers from a file.
     """
