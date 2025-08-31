@@ -1,5 +1,5 @@
 from math import log2
-import numpy as np
+import numpy as np # type: ignore
 import time
 
 POSSIBLE_WORDS = set()
