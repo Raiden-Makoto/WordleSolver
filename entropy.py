@@ -57,11 +57,12 @@ def bestGuessVectorized(candidates: set, allWords: set):
 def solveWordle(candidates: set[str], answer: str, maxGuesses: int = 6, allWords: set[str] = None):
     """
     Solve Wordle by always starting with 'arise' and then using entropy-based scoring.
+    This has an average solve of 3.89 guesses.
     """
 
     guesses = []
 
-    # --- First guess: fixed "arise" ---
+    # --- First guess: fixed word ---
     firstGuess = "arise"
     guesses.append(firstGuess)
     feedback = getFeedback(firstGuess, answer)
@@ -320,3 +321,4 @@ if __name__ == "__main__":
             print(f"\nTotal testing time: {time.time() - starttime:.2f} seconds.")
         else:
             print("No historical Wordle data found. Create a 'historical_wordles.txt' file with one word per line.")
+

@@ -415,6 +415,7 @@ edict
 edify
 egret
 eject
+elate
 elbow
 elder
 elite
