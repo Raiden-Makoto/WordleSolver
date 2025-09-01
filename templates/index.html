@@ -35,12 +35,266 @@
             margin-bottom: 2rem;
             font-style: italic;
         }
+        .game-grid {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            max-width: 350px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .grid-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        .grid-cell {
+            width: 62px;
+            height: 62px;
+            border: 2px solid #3a3a3c;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+        .grid-cell.filled {
+            border-color: #565758;
+        }
+        .grid-cell.selected {
+            border-color: #ffffff;
+            border-width: 3px;
+        }
+        .grid-cell.correct {
+            background-color: #6aaa64;
+            border-color: #6aaa64;
+        }
+        .grid-cell.present {
+            background-color: #c9b458;
+            border-color: #c9b458;
+        }
+        .grid-cell.absent {
+            background-color: #787c7e;
+            border-color: #787c7e;
+        }
+        .feedback-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px auto 0;
+            max-width: 600px;
+        }
+        .feedback-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .feedback-btn:hover {
+            opacity: 0.8;
+        }
+        .feedback-btn.green {
+            background-color: #6aaa64;
+        }
+        .feedback-btn.yellow {
+            background-color: #c9b458;
+        }
+        .feedback-btn.gray {
+            background-color: #787c7e;
+        }
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px auto 0;
+        }
+        .control-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: bold;
+            font-size: 13px;
+            color: #ffffff;
+            background-color: #565758;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .control-btn:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Wordle Solver</h1>
         <p class="disclaimer">This solver is unofficial and not affiliated with the New York Times or Wordle.</p>
+        
+        <div class="game-grid">
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+                <div class="grid-cell"></div>
+            </div>
+        </div>
+        
+        <div class="feedback-buttons">
+            <button class="feedback-btn green">Green (Correct)</button>
+            <button class="feedback-btn yellow">Yellow (Wrong Position)</button>
+            <button class="feedback-btn gray">Gray (Not in Word)</button>
+        </div>
+        
+        <div class="control-buttons">
+            <button class="control-btn" id="clear-cell-btn">Clear Cell</button>
+            <button class="control-btn" id="next-row-btn">Next Row</button>
+        </div>
     </div>
+
+    <script>
+        let currentRow = 0;
+        let currentCol = 0;
+        const maxCols = 5;
+        const maxRows = 6;
+
+        // Get all grid cells
+        const gridCells = document.querySelectorAll('.grid-cell');
+        
+        function getCellIndex(row, col) {
+            return row * maxCols + col;
+        }
+
+        function addLetter(letter) {
+            if (currentCol < maxCols) {
+                const cellIndex = getCellIndex(currentRow, currentCol);
+                gridCells[cellIndex].textContent = letter;
+                gridCells[cellIndex].classList.add('filled');
+                currentCol++;
+            }
+        }
+
+        function deleteLetter() {
+            if (currentCol > 0) {
+                currentCol--;
+                const cellIndex = getCellIndex(currentRow, currentCol);
+                const cell = gridCells[cellIndex];
+                
+                // Remove color classes instead of text content
+                cell.classList.remove('correct', 'present', 'absent', 'filled');
+            }
+        }
+
+        function submitWord() {
+            if (currentCol < maxCols) {
+                alert("You need to have 5 colored cells!");
+                return;
+            }
+            
+            if (currentCol === maxCols) {
+                // Ask for confirmation before moving to next row
+                const confirmed = confirm("Are you sure your feedback is correct? The solver may not return the right answer if the feedback is wrong.");
+                
+                if (confirmed) {
+                    // Move to next row
+                    currentRow++;
+                    currentCol = 0;
+                    
+                    if (currentRow >= maxRows) {
+                        currentRow = maxRows - 1; // Stay on last row
+                    }
+                }
+            }
+        }
+
+        // Handle physical keyboard input (Enter and Backspace only)
+        document.addEventListener('keydown', function(event) {
+            const key = event.key.toUpperCase();
+            
+            if (key === 'BACKSPACE') {
+                deleteLetter();
+            } else if (key === 'ENTER') {
+                submitWord();
+            }
+        });
+
+        // Handle feedback button clicks - color cells in sequence
+        document.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const cellIndex = getCellIndex(currentRow, currentCol);
+                
+                if (currentCol < maxCols) {
+                    const cell = gridCells[cellIndex];
+                    
+                    // Remove existing color classes
+                    cell.classList.remove('correct', 'present', 'absent');
+                    
+                    // Add new color class based on button
+                    if (this.classList.contains('green')) {
+                        cell.classList.add('correct');
+                    } else if (this.classList.contains('yellow')) {
+                        cell.classList.add('present');
+                    } else if (this.classList.contains('gray')) {
+                        cell.classList.add('absent');
+                    }
+                    
+                    // Move to next cell
+                    currentCol++;
+                }
+            });
+        });
+
+        // Handle control button clicks
+        document.getElementById('clear-cell-btn').addEventListener('click', function() {
+            deleteLetter();
+        });
+
+        document.getElementById('next-row-btn').addEventListener('click', function() {
+            submitWord();
+        });
+    </script>
 </body>
 </html>
