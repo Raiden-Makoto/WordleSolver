@@ -45,8 +45,22 @@
             color: #ffffff;
             font-size: 1.5rem;
             text-align: center;
-            margin: 0 0 2rem 0;
+            margin: 0 0 1rem 0;
             font-weight: bold;
+        }
+        .warning-note {
+            color: #ffa500;
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 0 0 2rem 0;
+            padding: 8px 16px;
+            background-color: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            border-radius: 6px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 2rem;
         }
         .game-container {
             display: flex;
@@ -181,6 +195,9 @@
         <p class="disclaimer">This solver is unofficial and not affiliated with the New York Times or Wordle.</p>
         <h2 class="feedback-instruction">Enter feedback for</h2>
         <h2 id="current-word">ARISE</h2>
+        <div class="warning-note" id="warning-note">
+            ⚠️ Make sure your feedback is accurate - incorrect feedback may lead to wrong suggestions!
+        </div>
         
         <div class="game-container">
             <div class="row-indicator">
@@ -246,6 +263,7 @@
         <div class="control-buttons">
             <button class="control-btn" id="clear-cell-btn">Clear Cell</button>
             <button class="control-btn" id="next-row-btn">Next Row</button>
+            <button class="control-btn" id="reset-game-btn">Reset Game</button>
         </div>
     </div>
 
@@ -322,13 +340,44 @@
             }
             
             if (currentCol === maxCols) {
-                // Ask for confirmation before moving to next row
-                const confirmed = confirm("Are you sure your feedback is correct? The solver may not return the right answer if the feedback is wrong.");
-                
-                if (confirmed) {
                     // Get current row feedback before moving
                     const feedback = getRowFeedback(currentRow);
-                    console.log("Row feedback:", feedback);
+                    const currentWord = document.getElementById('current-word').textContent;
+                    console.log(`Round ${currentRow + 1}: Guessed "${currentWord}" with feedback "${feedback}"`);
+                    
+                    // Check if word is solved (all green)
+                    if (feedback === 'ggggg') {
+                        alert("🎉 Congratulations! Word found! 🎉");
+                        document.getElementById('current-word').textContent = "SOLVED!";
+                        console.log(`🎉 SOLVED in ${currentRow + 1} rounds! Final word: "${currentWord}"`);
+                        // Disable further interaction
+                        return;
+                    }
+                    
+                    // Send feedback to solver and get next word
+                    document.getElementById('current-word').textContent = "Loading... this may take a while";
+                    
+                    fetch('/get_next_word', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ feedback: feedback })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.word === 'ERROR') {
+                            alert("❌ No valid words remaining! There might be an error in your feedback.");
+                            return;
+                        }
+                        // Update the current word display
+                        document.getElementById('current-word').textContent = data.word;
+                        console.log(`Round ${currentRow + 2}: Next word suggested: "${data.word}" (${data.candidates_remaining} candidates remaining)`);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert("Error communicating with solver!");
+                    });
                     
                     // Move to next row
                     currentRow++;
@@ -340,7 +389,6 @@
                     
                     // Update arrow indicator
                     updateRowIndicator();
-                }
             }
         }
 
@@ -388,6 +436,36 @@
 
         document.getElementById('next-row-btn').addEventListener('click', function() {
             submitWord();
+        });
+
+        document.getElementById('reset-game-btn').addEventListener('click', function() {
+            // Reset frontend state
+            currentRow = 0;
+            currentCol = 0;
+            
+            // Clear all grid cells
+            gridCells.forEach(cell => {
+                cell.classList.remove('correct', 'present', 'absent', 'filled', 'selected');
+            });
+            
+            // Reset arrow indicator
+            updateRowIndicator();
+            
+            // Reset backend state
+            fetch('/reset_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('current-word').textContent = data.word;
+                console.log('Game reset. Starting word:', data.word);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     </script>
 </body>

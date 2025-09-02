@@ -8,7 +8,7 @@ with open("wordle_words.txt", "r") as f:
     for line in f:
         POSSIBLE_WORDS.add(line.strip())
 
-print(f"There are {len(POSSIBLE_WORDS)} possible words")
+# There are {len(POSSIBLE_WORDS)} possible words loaded
 
 def getFeedback(guess: str, answer: str) -> int:
     """
