@@ -1,17 +1,4 @@
----
-title: "Wordle Solver"
-emoji: 🧩
-colorFrom: blue
-colorTo: purple
-sdk: docker
-sdk_version: 1.0.0
-app_file: app.py
-pinned: false
-license: mit
-
----
-
-# Wordle Solver 🧩
+# [Wordle Solver](https://42cummer-entropywordlesolver.hf.space/) 🧩
 
 An intelligent Wordle solver that uses entropy-based algorithms to suggest optimal guesses in real-time.
 
