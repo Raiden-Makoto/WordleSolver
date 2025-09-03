@@ -1,3 +1,4 @@
+---
 title: "Wordle Solver"
 emoji: 🧩
 colorFrom: blue
