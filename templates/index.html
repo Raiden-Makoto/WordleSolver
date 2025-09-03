@@ -451,6 +451,9 @@
             // Reset arrow indicator
             updateRowIndicator();
             
+            // Clear any solved state immediately
+            document.getElementById('current-word').textContent = "Loading...";
+            
             // Reset backend state
             fetch('/reset_game', {
                 method: 'POST',
@@ -465,6 +468,8 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                // If there's an error, still show the default starting word
+                document.getElementById('current-word').textContent = "ARISE";
             });
         });
     </script>
