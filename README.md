@@ -47,13 +47,12 @@ An intelligent Wordle solver that uses entropy-based algorithms to suggest optim
 
 The solver has been tested against all historical Wordle answers with:
 - **Success rate**: ~99%+ 
-- **Average guesses**: 3.89
-- **Maximum guesses**: Rarely exceeds 6
+- **Average guesses**: 3.80
+- **Maximum guesses**: 6
 
 ## ⚠️ Disclaimer
 
-This solver is unofficial and not affiliated with the New York Times or Wordle. It's created for educational and entertainment purposes only.
-
+This solver is unofficial and not affiliated with the New York Times or Wordle. 
 ---
 
 **Happy solving! 🎯**
